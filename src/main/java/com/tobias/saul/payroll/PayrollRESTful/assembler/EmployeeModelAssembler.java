@@ -18,4 +18,5 @@ public class EmployeeModelAssembler implements RepresentationModelAssembler<Empl
 				linkTo(methodOn(EmployeeController.class).getEmployee(employee.getId())).withSelfRel(),
 				linkTo(methodOn(EmployeeController.class).getEmployees()).withRel("employees"));
 	}
+	
 }

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tobias.saul.payroll.PayrollRESTful.assembler.EmployeeModelAssembler;
 import com.tobias.saul.payroll.PayrollRESTful.model.Employee;
 import com.tobias.saul.payroll.PayrollRESTful.service.EmployeeService;
 
@@ -24,16 +25,21 @@ import com.tobias.saul.payroll.PayrollRESTful.service.EmployeeService;
 @RequestMapping("/api/v1")
 public class EmployeeController {
 
+	private final EmployeeService employeeService;
+	private final EmployeeModelAssembler assembler;
+	
 	@Autowired
-	private EmployeeService employeeService;
+	public EmployeeController(EmployeeService employeeService, EmployeeModelAssembler assembler) {
+		this.employeeService = employeeService;
+		this.assembler = assembler;
+		
+	}
 
 	@GetMapping("/employees")
 	public CollectionModel<EntityModel<Employee>> getEmployees() {
 
 		List<EntityModel<Employee>> employees = employeeService.findAllEmployees().stream()
-				.map(employee -> new EntityModel<Employee>(employee,
-						linkTo(methodOn(EmployeeController.class).getEmployee(employee.getId())).withSelfRel(),
-						linkTo(methodOn(EmployeeController.class).getEmployees()).withRel("employees")))
+				.map(assembler::toModel)
 				.collect(Collectors.toList());
 
 		return new CollectionModel<>(employees,
@@ -46,11 +52,9 @@ public class EmployeeController {
 	}
 
 	@GetMapping("/employees/{employeeId}")
-	public EntityModel<Employee> getEmployee(@PathVariable("employeeId") Long employeeId) {
+	public EntityModel<Employee> getEmployee(@PathVariable("employeeId") Long employeeId) {		
 		Employee employee = employeeService.findEmployee(employeeId);
-		return new EntityModel<>(employee,
-				linkTo(methodOn(EmployeeController.class).getEmployee(employeeId)).withSelfRel(),
-				linkTo(methodOn(EmployeeController.class).getEmployees()).withRel("employees"));
+		return assembler.toModel(employee);		
 	}
 
 	@PutMapping("/employees/{employeeId}")
