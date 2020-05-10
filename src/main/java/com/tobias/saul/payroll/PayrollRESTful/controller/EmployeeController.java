@@ -2,6 +2,10 @@ package com.tobias.saul.payroll.PayrollRESTful.controller;
 
 import java.util.List;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,8 +37,11 @@ public class EmployeeController {
 	}
 	
 	@GetMapping("/employees/{employeeId}")
-	public Employee getEmployee(@PathVariable("employeeId") Long employeeId) {
-		return employeeService.findEmployee(employeeId);
+	public EntityModel<Employee> getEmployee(@PathVariable("employeeId") Long employeeId) {
+		Employee employee = employeeService.findEmployee(employeeId);
+		return new EntityModel<>(employee,
+				linkTo(methodOn(EmployeeController.class).getEmployee(employeeId)).withSelfRel(),
+				linkTo(methodOn(EmployeeController.class).getEmployees()).withRel("employees"));
 	}
 	
 	@PutMapping("/employees/{employeeId}")

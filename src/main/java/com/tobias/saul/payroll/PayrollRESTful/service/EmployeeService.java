@@ -31,8 +31,8 @@ public class EmployeeService {
 	public Employee updateEmployee(Employee newEmployee, Long employeeId) {
 		return empRepo.findById(employeeId)
 				.map(employee -> {
-					employee.setName(employee.getName());
-					employee.setRole(employee.getRole());
+					employee.setName(newEmployee.getName());
+					employee.setRole(newEmployee.getRole());
 					return empRepo.save(employee);
 				})
 				.orElseGet(() -> {
