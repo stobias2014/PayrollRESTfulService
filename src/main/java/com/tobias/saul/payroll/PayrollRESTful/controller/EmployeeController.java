@@ -6,7 +6,8 @@ import java.util.stream.Collectors;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
-
+import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.http.ResponseEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,8 +48,13 @@ public class EmployeeController {
 	}
 
 	@PostMapping("/employees")
-	public Employee createEmployee(@RequestBody Employee employee) {
-		return employeeService.createEmployee(employee);
+	public ResponseEntity<?> createEmployee(@RequestBody Employee employee) {
+		
+		EntityModel<Employee> employeeModel = assembler
+				.toModel(employeeService.createEmployee(employee));
+		
+		return ResponseEntity.created(employeeModel.getRequiredLink(IanaLinkRelations.SELF)
+				.toUri()).body(employeeModel);
 	}
 
 	@GetMapping("/employees/{employeeId}")
@@ -58,13 +64,19 @@ public class EmployeeController {
 	}
 
 	@PutMapping("/employees/{employeeId}")
-	public Employee updateEmployee(@RequestBody Employee employee, @PathVariable("employeeId") Long employeeId) {
-		return employeeService.updateEmployee(employee, employeeId);
+	public ResponseEntity<?> updateEmployee(@RequestBody Employee employee, @PathVariable("employeeId") Long employeeId) {
+		
+		EntityModel<Employee> employeeModel = assembler.toModel(employeeService.updateEmployee(employee, employeeId));
+		
+		return ResponseEntity.created(employeeModel.getRequiredLink(IanaLinkRelations.SELF)
+				.toUri()).body(employeeModel);
 	}
 
 	@DeleteMapping("/employees/{employeeId}")
-	public void deleteEmployee(@PathVariable("employeeId") Long employeeId) {
+	public ResponseEntity<?> deleteEmployee(@PathVariable("employeeId") Long employeeId) {
 		employeeService.deleteEmployee(employeeId);
+		
+		return ResponseEntity.noContent().build();
 	}
 
 }
