@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.hateoas.mediatype.vnderrors.VndErrors;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -76,6 +78,38 @@ public class OrderController {
 		
 		return ResponseEntity.created(orderModel.getRequiredLink(IanaLinkRelations.SELF)
 				.toUri()).body(orderModel);
+	}
+	
+	@PutMapping("/orders/{orderId}/complete")
+	public ResponseEntity<?> completeOrder(@PathVariable("orderId") Long orderId) {
+		
+		Order order = orderService.findOrder(orderId);
+		
+		if(order.getOrderStatus() == OrderStatus.IN_PROGRESS) {
+			order.setOrderStatus(OrderStatus.COMPLETED);
+			return ResponseEntity.ok(assembler.toModel(orderService.createOrder(order)));
+		}
+		
+		return ResponseEntity
+				.status(HttpStatus.METHOD_NOT_ALLOWED)
+				.body(new VndErrors("Method not allowed", "Cannot complete order" +
+				" that is in " + order.getOrderStatus() + " status."));
+	}
+	
+	@DeleteMapping("/orders/{orderId}/cancel")
+	public ResponseEntity<?> cancelOrder(@PathVariable("orderId") Long orderId) {
+		
+		Order order = orderService.findOrder(orderId);
+		
+		if(order.getOrderStatus() == OrderStatus.IN_PROGRESS) {
+			order.setOrderStatus(OrderStatus.CANCELLED);
+			return ResponseEntity.ok(assembler.toModel(orderService.createOrder(order)));
+		}
+		
+		return ResponseEntity
+				.status(HttpStatus.METHOD_NOT_ALLOWED)
+				.body(new VndErrors("Method not allowed", "Cannot cancel order " +
+				" that is in " + order.getOrderStatus() + "status."));
 	}
 	
 	@DeleteMapping("/orders/{orderId}")
